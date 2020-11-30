@@ -1,0 +1,52 @@
+version: '3.7'
+services:
+  nest:
+    container_name: nest
+    build:
+      context: .
+      target: development
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - 3000:3000
+    environment:
+      COCKROACH_HOST: cockroachdb
+      COCKROACH_PORT: 26257
+      COCKROACH_USER: root
+      COCKROACH_PASSWORD: root
+      COCKROACH_DATABASE: nest
+      COCKROACH_SSL_ENABLED: 'false'
+    command: /bin/bash
+    tty: true
+    networks:
+      - webnet
+    depends_on:
+      - cockroachdb
+
+  cockroachdb:
+    container_name: cockroachdb
+    image: cockroachdb/cockroach:v20.2.7
+    command: start-single-node --insecure
+    networks:
+      - webnet
+    ports:
+      - 26257:26257
+      - 8081:8080
+    volumes:
+      - cockroachdata:/cockroach/cockroach-data
+
+  adminer:
+    container_name: adminer
+    image: adminer:4.7.8-standalone
+    networks:
+      - webnet
+    ports:
+      - 8080:8080
+    depends_on:
+      - cockroachdb
+
+networks:
+  webnet:
+volumes:
+  cockroachdata:
